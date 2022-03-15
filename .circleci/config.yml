@@ -22,16 +22,18 @@ workflows:
             branches:
               only:
                 - main
+                - /ci\/tracing-tests.*/
                 - /release-v[0-9]+.[0-9]+/
       - run-tracing-tests:
-          repo: sumologic-otel-collector-dev
-          tag: ${CIRCLE_SHA1}
+          repo: sumologic-otel-collector
+          tag: 0.0.54-beta.0
           requires:
             - hold
           filters:
             branches:
               only:
                 - main
+                - /ci\/tracing-tests.*/
                 - /release-v[0-9]+.[0-9]+/
 
 jobs:
@@ -42,7 +44,7 @@ jobs:
       tag:
         type: string
     docker:
-      - image: ${INFRASTRUCTURE_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com/tracing-tests/tests:latest
+      - image: ${INFRASTRUCTURE_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com/tracing-tests/tests:otel-distro
         aws_auth:
           aws_access_key_id: ${TRACING_TESTS_AWS_ACCESS_KEY_ID}
           aws_secret_access_key: ${TRACING_TESTS_AWS_SECRET_ACCESS_KEY}
