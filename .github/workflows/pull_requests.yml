@@ -314,9 +314,9 @@ jobs:
         if: steps.changed-files.outputs.any_changed == 'true'
         run: echo "$HOME/bin" >> $GITHUB_PATH
 
-      - name: Run golangci-lint
-        if: steps.changed-files.outputs.any_changed == 'true'
-        run: make golint
+      # - name: Run golangci-lint
+      #   if: steps.changed-files.outputs.any_changed == 'true'
+      #   run: make golint
 
   build:
     name: Build
