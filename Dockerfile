@@ -1,5 +1,5 @@
 FROM alpine:3.17.3 as otelcol
-COPY otelcol-sumo /
+COPY otelcolbuilder/cmd/otelcol-sumo /
 # This shouldn't be necessary but sometimes we end up with execution bit not set.
 # ref: https://github.com/open-telemetry/opentelemetry-collector/issues/1317
 RUN chmod 755 /otelcol-sumo
