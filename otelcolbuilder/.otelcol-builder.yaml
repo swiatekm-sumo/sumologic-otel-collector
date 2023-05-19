@@ -230,3 +230,4 @@ replaces:
   # lokireceiver does a replace for this, so we need to as well
   - github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki => github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki v0.78.0
   - github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlqueryreceiver => github.com/dmolenda-sumo/opentelemetry-collector-contrib/receiver/sqlqueryreceiver sqlquery-receiver-add-logs-v0.78.0
+  - github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza => github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza fb35a636ecea1c5b25d627a72180384147cb83b5
