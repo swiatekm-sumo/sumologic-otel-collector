@@ -9,16 +9,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Released TBA
 
+### Changed
+
+- chore: update OT to v0.78.0 [#1142]
+
+[unreleased]: https://github.com/SumoLogic/sumologic-otel-collector/compare/v0.77.0-sumo-0...main
+[#1142]: https://github.com/SumoLogic/sumologic-otel-collector/pull/1142
+
+## [v0.77.0-sumo-0]
+
+### Released 2023-05-24
+
+This release introduces the following breaking changes:
+
+- feat!: disable Prometheus metrics name normalization by default [#1138]
+
+- feat(datadogprocessor)!: remove DataDog processor [#1135]
+
+  It doesn't make much sense to include it if the DataDog exporter is not included.
+
+See the [upgrade guide][upgrade_guide_v0.77] for more details.
+
+### Added
+
+- feat(k8sprocessor): support otel semantic convention in config [#1122]
+- chore: upgrade OT core to 0.77.0 [#1125]
+
+### Changed
+
+- feat(sumologicextension): retry validation and exit in case of connection issues [#1134]
+
 ### Fixed
 
 - fix(sumologicexporter): avoid allocations in compressor [#1118]
 
+[v0.77.0-sumo-0]: https://github.com/SumoLogic/sumologic-otel-collector/compare/v0.76.1-sumo-0...v0.77.0-sumo-0
 [#1118]: https://github.com/SumoLogic/sumologic-otel-collector/pull/1118
-[Unreleased]: https://github.com/SumoLogic/sumologic-otel-collector/compare/v0.76.1-sumo-0...main
+[#1122]: https://github.com/SumoLogic/sumologic-otel-collector/pull/1122
+[#1125]: https://github.com/SumoLogic/sumologic-otel-collector/pull/1125
+[#1134]: https://github.com/SumoLogic/sumologic-otel-collector/pull/1134
+[#1135]: https://github.com/SumoLogic/sumologic-otel-collector/pull/1135
+[#1138]: https://github.com/SumoLogic/sumologic-otel-collector/pull/1138
+[upgrade_guide_v0.77]: ./docs/upgrading.md#upgrading-to-v0770-sumo-0
 
 ## [0.76.1-sumo-0]
 
-### Released 28.04.2023
+### Released 2023-28-04
 
 ### Changed
 
