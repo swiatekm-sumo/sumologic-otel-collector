@@ -28,11 +28,14 @@ jobs:
     strategy:
       matrix:
         include:
-          - arch_os: linux_amd64
+          - arch: amd64
+            os: linux
             runs_on: ubuntu-20.04
-          - arch_os: linux_arm64
+          - arch: arm64
+            os: linux
             runs_on: ubuntu-20.04
-          - arch_os: windows_amd64
+          - arch: amd64
+            os: windows
             runs_on: windows-2022
             builder_bin_path: '${RUNNER_TEMP}\bin'
             builder_bin_ext: .exe
@@ -58,9 +61,9 @@ jobs:
           path: |
             ${{ env.GOMODCACHE }}/cache
             ${{ env.GOCACHE }}
-          key: build-go-${{matrix.arch_os}}-${{ hashFiles('**/go.sum') }}
+          key: build-go-${{matrix.os}}_${{matrix.arch}}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            build-go-${{matrix.arch_os}}-${{matrix.arch_os}}-
+            build-go-${{matrix.os}}_${{matrix.arch}}-${{matrix.os}}_${{matrix.arch}}-
 
       - name: Set default BUILDER_BIN_PATH
         run: echo "BUILDER_BIN_PATH=${HOME}/bin" >> $GITHUB_ENV
@@ -87,15 +90,15 @@ jobs:
         run: make prepare-tag TAG=${{ steps.extract_tag.outputs.tag }}
 
       - name: Build
-        run: make otelcol-sumo-${{matrix.arch_os}}
+        run: make otelcol-sumo-${{matrix.os}}_${{matrix.arch}}
         working-directory: ./otelcolbuilder
 
       - name: Set filename
         id: set_filename
-        run: echo "filename=$(echo otelcol-sumo-${{ steps.extract_tag.outputs.tag }}-${{matrix.arch_os}})${{matrix.builder_bin_ext}}" > $GITHUB_OUTPUT
+        run: echo "filename=$(echo otelcol-sumo-${{ steps.extract_tag.outputs.tag }}-${{matrix.os}}_${{matrix.arch}})${{matrix.builder_bin_ext}}" > $GITHUB_OUTPUT
 
       - name: Rename to include tag in filename
-        run: cp otelcol-sumo-${{matrix.arch_os}}${{matrix.builder_bin_ext}} ${{ steps.set_filename.outputs.filename }}
+        run: cp otelcol-sumo-${{matrix.os}}_${{matrix.arch}}${{matrix.builder_bin_ext}} ${{ steps.set_filename.outputs.filename }}
         working-directory: ./otelcolbuilder/cmd
 
       - name: Show included modules
@@ -103,7 +106,7 @@ jobs:
         run: |
           go version -m ${{ steps.set_filename.outputs.filename }} | \
           grep -E "/(receiver|exporter|processor|extension)/" | \
-          tee otelcol-sumo-${{matrix.arch_os}}_modules.txt
+          tee otelcol-sumo-${{matrix.os}}_${{matrix.arch}}_modules.txt
 
       - name: Sign Windows binary
         if: runner.os == 'Windows'
@@ -119,7 +122,7 @@ jobs:
       - name: Store binary as action artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{matrix.arch_os}}
+          name: ${{matrix.os}}_${{matrix.arch}}
           path: ./otelcolbuilder/cmd/${{ steps.set_filename.outputs.filename }}
           if-no-files-found: error
 
@@ -129,9 +132,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - arch_os: darwin_amd64
+          - arch: amd64
+            os: darwin
             runs_on: macos-latest
-          - arch_os: darwin_arm64
+          - arch: arm64
+            os: darwin
             runs_on: macos-latest
     steps:
       - uses: actions/checkout@v3
@@ -152,9 +157,9 @@ jobs:
           path: |
             ${{ env.GOMODCACHE }}/cache
             ${{ env.GOCACHE }}
-          key: build-go-${{matrix.arch_os}}-${{ hashFiles('**/go.sum') }}
+          key: build-go-${{matrix.os}}_${{matrix.arch}}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            build-go-${{matrix.arch_os}}-${{matrix.arch_os}}-
+            build-go-${{matrix.os}}_${{matrix.arch}}-${{matrix.os}}_${{matrix.arch}}-
 
       - name: Fetch current branch
         run: ./ci/fetch_current_branch.sh
@@ -174,12 +179,12 @@ jobs:
         run: make prepare-tag TAG=${{ steps.extract_tag.outputs.tag }}
 
       - name: Build
-        run: make otelcol-sumo-${{matrix.arch_os}}
+        run: make otelcol-sumo-${{matrix.os}}_${{matrix.arch}}
         working-directory: ./otelcolbuilder
 
       - name: Set filename
         id: set_filename
-        run: echo "filename=$(echo otelcol-sumo-${{ steps.extract_tag.outputs.tag }}-${{matrix.arch_os}})" > $GITHUB_OUTPUT
+        run: echo "filename=$(echo otelcol-sumo-${{ steps.extract_tag.outputs.tag }}-${{matrix.os}}_${{matrix.arch}})" > $GITHUB_OUTPUT
 
       - name: Import Code-Signing Certificates
         uses: Apple-Actions/import-codesign-certs@v2
@@ -206,14 +211,14 @@ jobs:
         env:
           AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
         working-directory: ./otelcolbuilder/
-        run: make ${{matrix.arch_os}}-sign
+        run: make ${{matrix.os}}_${{matrix.arch}}-sign
 
       - name: Rename .dmg to include tag in filename
-        run: cp otelcol-sumo-${{matrix.arch_os}}.dmg ${{ steps.set_filename.outputs.filename }}.dmg
+        run: cp otelcol-sumo-${{matrix.os}}_${{matrix.arch}}.dmg ${{ steps.set_filename.outputs.filename }}.dmg
         working-directory: ./otelcolbuilder/cmd
 
       - name: Rename binary to include tag in filename
-        run: cp otelcol-sumo-${{matrix.arch_os}} ${{ steps.set_filename.outputs.filename }}
+        run: cp otelcol-sumo-${{matrix.os}}_${{matrix.arch}} ${{ steps.set_filename.outputs.filename }}
         working-directory: ./otelcolbuilder/cmd
 
       - name: Show included modules
@@ -221,21 +226,21 @@ jobs:
         run: |
           go version -m ${{ steps.set_filename.outputs.filename }} | \
           grep -E "/(receiver|exporter|processor|extension)/" | \
-          tee otelcol-sumo-${{matrix.arch_os}}_modules.txt
+          tee otelcol-sumo-${{matrix.os}}_${{matrix.arch}}_modules.txt
 
       # Store binary and .dmg into pipeline artifacts after they have been signed
 
       - name: Store .dmg as action artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{matrix.arch_os}}.dmg
+          name: ${{matrix.os}}_${{matrix.arch}}.dmg
           path: ./otelcolbuilder/cmd/${{ steps.set_filename.outputs.filename }}.dmg
           if-no-files-found: error
 
       - name: Store binary as action artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{matrix.arch_os}}
+          name: ${{matrix.os}}_${{matrix.arch}}
           path: ./otelcolbuilder/cmd/${{ steps.set_filename.outputs.filename }}
           if-no-files-found: error
 
@@ -245,7 +250,9 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        arch_os: [ 'linux_amd64' ]
+        include:
+          - arch: amd64
+            os: linux
     steps:
       - uses: actions/checkout@v3
 
@@ -265,9 +272,9 @@ jobs:
           path: |
             ${{ env.GOMODCACHE }}/cache
             ${{ env.GOCACHE }}
-          key: build-go-${{matrix.arch_os}}-${{ hashFiles('**/go.sum') }}
+          key: build-go-${{matrix.os}}_${{matrix.arch}}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            build-go-${{matrix.arch_os}}-${{matrix.arch_os}}-
+            build-go-${{matrix.os}}_${{matrix.arch}}-${{matrix.os}}_${{matrix.arch}}-
 
       - name: Fetch current branch
         run: ./ci/fetch_current_branch.sh
@@ -287,15 +294,15 @@ jobs:
         run: make prepare-tag TAG=${{ steps.extract_tag.outputs.tag }}
 
       - name: Build
-        run: make otelcol-sumo-${{matrix.arch_os}} FIPS_SUFFIX="-fips" CGO_ENABLED=1
+        run: make otelcol-sumo-${{matrix.os}}_${{matrix.arch}} FIPS_SUFFIX="-fips" CGO_ENABLED=1
         working-directory: ./otelcolbuilder
 
       - name: Set filename
         id: set_filename
-        run: echo "filename=$(echo otelcol-sumo-${{ steps.extract_tag.outputs.tag }}-fips-${{matrix.arch_os}})" > $GITHUB_OUTPUT
+        run: echo "filename=$(echo otelcol-sumo-${{ steps.extract_tag.outputs.tag }}-fips-${{matrix.os}}_${{matrix.arch}})" > $GITHUB_OUTPUT
 
       - name: Rename to include tag in filename
-        run: cp otelcol-sumo-fips-${{matrix.arch_os}} ${{ steps.set_filename.outputs.filename }}
+        run: cp otelcol-sumo-fips-${{matrix.os}}_${{matrix.arch}} ${{ steps.set_filename.outputs.filename }}
         working-directory: ./otelcolbuilder/cmd
 
       - name: Show BoringSSL symbols
@@ -309,12 +316,12 @@ jobs:
         run: |
           go version -m ${{ steps.set_filename.outputs.filename }} | \
           grep -E "/(receiver|exporter|processor|extension)/" | \
-          tee otelcol-sumo-fips-${{matrix.arch_os}}_modules.txt
+          tee otelcol-sumo-fips-${{matrix.os}}_${{matrix.arch}}_modules.txt
 
       - name: Store binary as action artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{matrix.arch_os}}
+          name: ${{matrix.os}}_${{matrix.arch}}
           path: ./otelcolbuilder/cmd/${{ steps.set_filename.outputs.filename }}
           if-no-files-found: error
 
@@ -326,7 +333,11 @@ jobs:
       - build-fips
     strategy:
       matrix:
-        arch_os: [ 'linux_amd64', 'linux_arm64']
+        include:
+          - arch: amd64
+            os: linux
+          - arch: arm64
+            os: linux
     steps:
       - uses: actions/checkout@v3
 
@@ -349,11 +360,11 @@ jobs:
 
       - name: Set filename
         id: set_filename
-        run: echo "filename=$(echo otelcol-sumo-${{ steps.extract_tag.outputs.tag }}-${{matrix.arch_os}})" > $GITHUB_OUTPUT
+        run: echo "filename=$(echo otelcol-sumo-${{ steps.extract_tag.outputs.tag }}-${{matrix.os}}_${{matrix.arch}})" > $GITHUB_OUTPUT
 
       - name: Set filename for FIPS
         id: set_filename_fips
-        run: echo "filename_fips=$(echo otelcol-sumo-${{ steps.extract_tag.outputs.tag }}-fips-${{matrix.arch_os}})" > $GITHUB_OUTPUT
+        run: echo "filename_fips=$(echo otelcol-sumo-${{ steps.extract_tag.outputs.tag }}-fips-${{matrix.os}}_${{matrix.arch}})" > $GITHUB_OUTPUT
 
       - name: Login to Open Source ECR
         run: make login
@@ -364,7 +375,7 @@ jobs:
       - name: Download binary action artifact from build phase (regular binary and FIPS binary)
         uses: actions/download-artifact@v3
         with:
-          name: ${{matrix.arch_os}}
+          name: ${{matrix.os}}_${{matrix.arch}}
           path: artifacts/
 
       - name: Build and push FIPS image to Open Source ECR

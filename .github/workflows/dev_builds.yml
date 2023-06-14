@@ -22,7 +22,9 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        arch_os: [ 'linux_amd64' ]
+        include:
+          - arch: amd64
+            os: linux
     steps:
       - uses: actions/checkout@v3
       - name: Setup go
@@ -35,9 +37,9 @@ jobs:
         with:
           path: |
             /home/runner/.cache/golangci-lint
-          key: ${{matrix.arch_os}}-golangcilint-${{ hashFiles('**/go.sum') }}
+          key: ${{matrix.os}}_${{matrix.arch}}-golangcilint-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{matrix.arch_os}}-golangcilint-
+            ${{matrix.os}}_${{matrix.arch}}-golangcilint-
 
       - name: Install golangci-lint
         run: make install-golangci-lint
@@ -54,15 +56,20 @@ jobs:
     strategy:
       matrix:
         include:
-          - arch_os: linux_amd64
+          - arch: amd64
+            os: linux
             runs_on: ubuntu-20.04
-          - arch_os: linux_arm64
+          - arch: arm64
+            os: linux
             runs_on: ubuntu-20.04
-          - arch_os: darwin_amd64
+          - arch: amd64
+            os: darwin
             runs_on: macos-latest
-          - arch_os: darwin_arm64
+          - arch: arm64
+            os: darwin
             runs_on: macos-latest
-          - arch_os: windows_amd64
+          - arch: amd64
+            os: windows
             runs_on: windows-2022
             builder_bin_path: '${RUNNER_TEMP}\bin'
             builder_bin_ext: .exe
@@ -88,9 +95,9 @@ jobs:
           path: |
             ${{ env.GOMODCACHE }}/cache
             ${{ env.GOCACHE }}
-          key: build-go-${{matrix.arch_os}}-${{ hashFiles('**/go.sum') }}
+          key: build-go-${{matrix.os}}_${{matrix.arch}}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            build-go-${{matrix.arch_os}}-${{matrix.arch_os}}-
+            build-go-${{matrix.os}}_${{matrix.arch}}-${{matrix.os}}_${{matrix.arch}}-
 
       - name: Set default BUILDER_BIN_PATH
         run: echo "BUILDER_BIN_PATH=${HOME}/bin" >> $GITHUB_ENV
@@ -110,34 +117,34 @@ jobs:
         run: make gotest
 
       - name: Build
-        run: make otelcol-sumo-${{matrix.arch_os}}
+        run: make otelcol-sumo-${{matrix.os}}_${{matrix.arch}}
         working-directory: ./otelcolbuilder
 
       - name: Show included modules
         working-directory: ./otelcolbuilder/cmd
         run: |
-          go version -m otelcol-sumo-${{matrix.arch_os}}${{matrix.builder_bin_ext}} | \
+          go version -m otelcol-sumo-${{matrix.os}}_${{matrix.arch}}${{matrix.builder_bin_ext}} | \
           grep -E "/(receiver|exporter|processor|extension)/" | \
-          tee otelcol-sumo-${{matrix.arch_os}}_modules.txt
+          tee otelcol-sumo-${{matrix.os}}_${{matrix.arch}}_modules.txt
 
       # TODO:
       # Move that out to a separate job and run on a corresponding's OS runner.
       # - name: Run the binary
-      #   run: ./otelcol-sumo-${{matrix.arch_os}} --version
+      #   run: ./otelcol-sumo-${{matrix.os}}_${{matrix.arch}} --version
       #   working-directory: ./otelcolbuilder/cmd/
 
       - name: Store binary as action artifact
         uses: actions/upload-artifact@v3
         with:
-          name: otelcol-sumo-${{matrix.arch_os}}
-          path: ./otelcolbuilder/cmd/otelcol-sumo-${{matrix.arch_os}}${{matrix.builder_bin_ext}}
+          name: otelcol-sumo-${{matrix.os}}_${{matrix.arch}}
+          path: ./otelcolbuilder/cmd/otelcol-sumo-${{matrix.os}}_${{matrix.arch}}${{matrix.builder_bin_ext}}
           if-no-files-found: error
 
       - name: Store list of included modules as action artifact
         uses: actions/upload-artifact@v3
         with:
-          name: otelcol-sumo-${{matrix.arch_os}}_modules.txt
-          path: ./otelcolbuilder/cmd/otelcol-sumo-${{matrix.arch_os}}_modules.txt
+          name: otelcol-sumo-${{matrix.os}}_${{matrix.arch}}_modules.txt
+          path: ./otelcolbuilder/cmd/otelcol-sumo-${{matrix.os}}_${{matrix.arch}}_modules.txt
           if-no-files-found: error
 
   # pipeline to build FIPS compliance binary on Go+BoringCrypto
@@ -146,7 +153,9 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        arch_os: [ 'linux_amd64']
+        include:
+          - arch: amd64
+            os: linux
     steps:
       - uses: actions/checkout@v3
 
@@ -166,9 +175,9 @@ jobs:
           path: |
             ${{ env.GOMODCACHE }}/cache
             ${{ env.GOCACHE }}
-          key: build-go-${{matrix.arch_os}}-${{ hashFiles('**/go.sum') }}
+          key: build-go-${{matrix.os}}_${{matrix.arch}}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            build-go-${{matrix.arch_os}}-${{matrix.arch_os}}-
+            build-go-${{matrix.os}}_${{matrix.arch}}-${{matrix.os}}_${{matrix.arch}}-
 
       - name: Fetch current branch
         run: ./ci/fetch_current_branch.sh
@@ -184,34 +193,34 @@ jobs:
         run: make gotest
 
       - name: Build
-        run: make otelcol-sumo-${{matrix.arch_os}} FIPS_SUFFIX="-fips" CGO_ENABLED=1
+        run: make otelcol-sumo-${{matrix.os}}_${{matrix.arch}} FIPS_SUFFIX="-fips" CGO_ENABLED=1
         working-directory: ./otelcolbuilder
 
       - name: Show included modules
         working-directory: ./otelcolbuilder/cmd
         run: |
-          go version -m otelcol-sumo-fips-${{matrix.arch_os}} | \
+          go version -m otelcol-sumo-fips-${{matrix.os}}_${{matrix.arch}} | \
           grep -E "/(receiver|exporter|processor|extension)/" | \
-          tee otelcol-sumo-fips-${{matrix.arch_os}}_modules.txt
+          tee otelcol-sumo-fips-${{matrix.os}}_${{matrix.arch}}_modules.txt
 
       - name: Show BoringSSL symbols
         working-directory: ./otelcolbuilder/cmd
         run: |
-          go tool nm otelcol-sumo-fips-${{matrix.arch_os}} | \
+          go tool nm otelcol-sumo-fips-${{matrix.os}}_${{matrix.arch}} | \
           grep "_Cfunc__goboringcrypto_"
 
       - name: Store binary as action artifact
         uses: actions/upload-artifact@v3
         with:
-          name: otelcol-sumo-fips-${{matrix.arch_os}}
-          path: ./otelcolbuilder/cmd/otelcol-sumo-fips-${{matrix.arch_os}}
+          name: otelcol-sumo-fips-${{matrix.os}}_${{matrix.arch}}
+          path: ./otelcolbuilder/cmd/otelcol-sumo-fips-${{matrix.os}}_${{matrix.arch}}
           if-no-files-found: error
 
       - name: Store list of included modules as action artifact
         uses: actions/upload-artifact@v3
         with:
-          name: otelcol-sumo-fips-${{matrix.arch_os}}_modules.txt
-          path: ./otelcolbuilder/cmd/otelcol-sumo-fips-${{matrix.arch_os}}_modules.txt
+          name: otelcol-sumo-fips-${{matrix.os}}_${{matrix.arch}}_modules.txt
+          path: ./otelcolbuilder/cmd/otelcol-sumo-fips-${{matrix.os}}_${{matrix.arch}}_modules.txt
           if-no-files-found: error
 
   build-container-images:
@@ -222,7 +231,11 @@ jobs:
       - test-and-build-fips
     strategy:
       matrix:
-        arch_os: [ 'linux_amd64', 'linux_arm64' ]
+        include:
+          - arch: amd64
+            os: linux
+          - arch: arm64
+            os: linux
     steps:
       - uses: actions/checkout@v3
 
@@ -253,7 +266,7 @@ jobs:
         if: matrix.arch_os == 'linux_amd64'
         uses: actions/download-artifact@v3
         with:
-          name: otelcol-sumo-fips-${{matrix.arch_os}}
+          name: otelcol-sumo-fips-${{matrix.os}}_${{matrix.arch}}
 
       - name: Build and push FIPS image to Open Source ECR
         if: matrix.arch_os == 'linux_amd64'

@@ -122,15 +122,20 @@ jobs:
     strategy:
       matrix:
         include:
-          - arch_os: linux_amd64
+          - arch: amd64
+            os: linux
             runs_on: ubuntu-20.04
-          - arch_os: linux_arm64
+          - arch: arm64
+            os: linux
             runs_on: ubuntu-20.04
-          - arch_os: darwin_amd64
+          - arch: amd64
+            os: darwin
             runs_on: macos-latest
-          - arch_os: darwin_arm64
+          - arch: arm64
+            os: darwin
             runs_on: macos-latest
-          - arch_os: windows_amd64
+          - arch: amd64
+            os: windows
             runs_on: windows-2022
             builder_bin_path: '${RUNNER_TEMP}\bin'
             builder_bin_ext: .exe
@@ -171,9 +176,9 @@ jobs:
           path: |
             ${{ env.GOMODCACHE }}/cache
             ${{ env.GOCACHE }}
-          key: build-go-${{matrix.arch_os}}-${{ hashFiles('**/go.sum') }}
+          key: build-go-${{matrix.os}}_${{matrix.arch}}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            build-go-${{matrix.arch_os}}-${{matrix.arch_os}}-
+            build-go-${{matrix.os}}_${{matrix.arch}}-${{matrix.os}}_${{matrix.arch}}-
 
       - name: Set default BUILDER_BIN_PATH
         if: steps.changed-files.outputs.any_changed == 'true'
@@ -198,22 +203,22 @@ jobs:
 
       - name: Build
         if: steps.changed-files.outputs.any_changed == 'true'
-        run: make otelcol-sumo-${{matrix.arch_os}}
+        run: make otelcol-sumo-${{matrix.os}}_${{matrix.arch}}
         working-directory: ./otelcolbuilder
 
       - name: Show included modules
         if: steps.changed-files.outputs.any_changed == 'true'
         working-directory: ./otelcolbuilder/cmd
         run: |
-          go version -m otelcol-sumo-${{matrix.arch_os}}${{matrix.builder_bin_ext}} | \
+          go version -m otelcol-sumo-${{matrix.os}}_${{matrix.arch}}${{matrix.builder_bin_ext}} | \
           grep -E "/(receiver|exporter|processor|extension)/"
 
       - name: Store binary as action artifact
         if: steps.changed-files.outputs.any_changed == 'true'
         uses: actions/upload-artifact@v3
         with:
-          name: otelcol-sumo-${{matrix.arch_os}}
-          path: ./otelcolbuilder/cmd/otelcol-sumo-${{matrix.arch_os}}${{matrix.builder_bin_ext}}
+          name: otelcol-sumo-${{matrix.os}}_${{matrix.arch}}
+          path: ./otelcolbuilder/cmd/otelcol-sumo-${{matrix.os}}_${{matrix.arch}}${{matrix.builder_bin_ext}}
           if-no-files-found: error
 
   test-install-script:
@@ -222,11 +227,14 @@ jobs:
     strategy:
       matrix:
         include:
-          - arch_os: linux_amd64
+          - arch: amd64
+            os: linux
             runs_on: ubuntu-20.04
-          - arch_os: darwin_amd64
+          - arch: amd64
+            os: darwin
             runs_on: macos-latest
-          - arch_os: windows_amd64
+          - arch: amd64
+            os: windows
             runs_on: windows-2022
     steps:
       - uses: actions/checkout@v3
@@ -258,7 +266,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - arch_os: linux_amd64
+          - arch: amd64
+            os: linux
             runs_on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
@@ -297,9 +306,9 @@ jobs:
           path: |
             ${{ env.GOMODCACHE }}/cache
             ${{ env.GOCACHE }}
-          key: build-go-boringcrypto-${{matrix.arch_os}}-${{ hashFiles('**/go.sum') }}
+          key: build-go-boringcrypto-${{matrix.os}}_${{matrix.arch}}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            build-go-boringcrypto-${{matrix.arch_os}}-
+            build-go-boringcrypto-${{matrix.os}}_${{matrix.arch}}-
 
       - name: Add opentelemetry-collector-builder installation dir to PATH
         if: steps.changed-files.outputs.any_changed == 'true'
@@ -316,29 +325,29 @@ jobs:
 
       - name: Build
         if: steps.changed-files.outputs.any_changed == 'true'
-        run: make otelcol-sumo-${{matrix.arch_os}} FIPS_SUFFIX="-fips" CGO_ENABLED=1
+        run: make otelcol-sumo-${{matrix.os}}_${{matrix.arch}} FIPS_SUFFIX="-fips" CGO_ENABLED=1
         working-directory: ./otelcolbuilder
 
       - name: Show included modules
         if: steps.changed-files.outputs.any_changed == 'true'
         working-directory: ./otelcolbuilder/cmd
         run: |
-          go version -m otelcol-sumo-fips-${{matrix.arch_os}} | \
+          go version -m otelcol-sumo-fips-${{matrix.os}}_${{matrix.arch}} | \
           grep -E "/(receiver|exporter|processor|extension)/"
 
       - name: Show BoringSSL symbols
         if: steps.changed-files.outputs.any_changed == 'true'
         working-directory: ./otelcolbuilder/cmd
         run: |
-          go tool nm otelcol-sumo-fips-${{matrix.arch_os}} | \
+          go tool nm otelcol-sumo-fips-${{matrix.os}}_${{matrix.arch}} | \
           grep "_Cfunc__goboringcrypto_"
 
       - name: Store binary as action artifact
         if: steps.changed-files.outputs.any_changed == 'true'
         uses: actions/upload-artifact@v3
         with:
-          name: otelcol-sumo-fips-${{matrix.arch_os}}
-          path: ./otelcolbuilder/cmd/otelcol-sumo-fips-${{matrix.arch_os}}
+          name: otelcol-sumo-fips-${{matrix.os}}_${{matrix.arch}}
+          path: ./otelcolbuilder/cmd/otelcol-sumo-fips-${{matrix.os}}_${{matrix.arch}}
           if-no-files-found: error
 
 
@@ -371,7 +380,9 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        arch_os: [ 'linux_amd64' ]
+        include:
+          - arch: amd64
+            os: linux
     needs: [test-and-build]
     steps:
       - uses: actions/checkout@v3
@@ -407,9 +418,9 @@ jobs:
           path: |
             ${{ env.GOMODCACHE }}/cache
             ${{ env.GOCACHE }}
-          key: build-go-${{matrix.arch_os}}-${{ hashFiles('**/go.sum') }}
+          key: build-go-${{matrix.os}}_${{matrix.arch}}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            build-go-${{matrix.arch_os}}-
+            build-go-${{matrix.os}}_${{matrix.arch}}-
 
       - uses: actions/cache/restore@v3
         if: steps.changed-files.outputs.any_changed == 'true'
@@ -417,9 +428,9 @@ jobs:
           path: |
             /home/runner/.cache/golangci-lint
             ${{ env.GOPATH }}/bin
-          key: golangcilint-${{matrix.arch_os}}-${{ hashFiles('**/go.sum') }}
+          key: golangcilint-${{matrix.os}}_${{matrix.arch}}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            golangcilint-${{matrix.arch_os}}-
+            golangcilint-${{matrix.os}}_${{matrix.arch}}-
 
       - name: Install golangci-lint
         if: steps.changed-files.outputs.any_changed == 'true'
@@ -441,7 +452,11 @@ jobs:
       - test-and-build-boringcrypto
     strategy:
       matrix:
-        arch_os: [ 'linux_amd64', 'linux_arm64']
+        include:
+          - arch: amd64
+            os: linux
+          - arch: arm64
+            os: linux
     steps:
       - uses: actions/checkout@v3
 
@@ -476,13 +491,13 @@ jobs:
         if: steps.changed-files.outputs.any_changed == 'true'
         uses: actions/download-artifact@v3
         with:
-          name: otelcol-sumo-${{matrix.arch_os}}
+          name: otelcol-sumo-${{matrix.os}}_${{matrix.arch}}
           path: artifacts/
 
       - name: Build the container image
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
-          cp artifacts/otelcol-sumo-${{matrix.arch_os}} otelcol-sumo
+          cp artifacts/otelcol-sumo-${{matrix.os}}_${{matrix.arch}} otelcol-sumo
           make build-container-multiplatform \
             PLATFORM=${{ matrix.arch_os }}
 
@@ -494,13 +509,13 @@ jobs:
         if: steps.changed-files.outputs.any_changed == 'true' && matrix.arch_os == 'linux_amd64'
         uses: actions/download-artifact@v3
         with:
-          name: otelcol-sumo-fips-${{matrix.arch_os}}
+          name: otelcol-sumo-fips-${{matrix.os}}_${{matrix.arch}}
           path: artifacts/
 
       - name: Build the FIPS container image
         if: steps.changed-files.outputs.any_changed == 'true' && matrix.arch_os == 'linux_amd64'
         run: |
-          cp artifacts/otelcol-sumo-fips-${{matrix.arch_os}} otelcol-sumo
+          cp artifacts/otelcol-sumo-fips-${{matrix.os}}_${{matrix.arch}} otelcol-sumo
           make build-container-multiplatform \
             PLATFORM=${{ matrix.arch_os }} LATEST_TAG_FIPS_SUFFIX="-fips"
 
