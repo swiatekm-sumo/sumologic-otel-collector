@@ -139,6 +139,9 @@ jobs:
             runs_on: windows-2022
             builder_bin_path: '${RUNNER_TEMP}\bin'
             builder_bin_ext: .exe
+    env:
+      GOOS: ${{ matrix.os }}
+      GOARCH: ${{ matrix.arch }}
     steps:
       - uses: actions/checkout@v3
 
@@ -236,6 +239,9 @@ jobs:
           - arch: amd64
             os: windows
             runs_on: windows-2022
+    env:
+      GOOS: ${{ matrix.os }}
+      GOARCH: ${{ matrix.arch }}
     steps:
       - uses: actions/checkout@v3
 
@@ -269,6 +275,9 @@ jobs:
           - arch: amd64
             os: linux
             runs_on: ubuntu-20.04
+    env:
+      GOOS: ${{ matrix.os }}
+      GOARCH: ${{ matrix.arch }}
     steps:
       - uses: actions/checkout@v3
 
@@ -383,6 +392,9 @@ jobs:
         include:
           - arch: amd64
             os: linux
+    env:
+      GOOS: ${{ matrix.os }}
+      GOARCH: ${{ matrix.arch }}
     needs: [test-and-build]
     steps:
       - uses: actions/checkout@v3
