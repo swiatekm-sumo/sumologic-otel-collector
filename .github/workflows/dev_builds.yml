@@ -48,8 +48,8 @@ jobs:
       - name: Run golangci-lint
         run: make golint
 
-  build:
-    name: Build
+  test-and-build:
+    name: Test and Build
     runs-on: ${{ matrix.runs_on }}
     strategy:
       matrix:
@@ -107,6 +107,9 @@ jobs:
         run: make install-builder
         working-directory: ./otelcolbuilder
 
+      - name: Run package tests
+        run: make gotest
+
       - name: Build
         run: make otelcol-sumo-${{matrix.arch_os}}
         working-directory: ./otelcolbuilder
@@ -139,8 +142,8 @@ jobs:
           if-no-files-found: error
 
   # pipeline to build FIPS compliance binary on Go+BoringCrypto
-  build-fips:
-    name: Build
+  test-and-build-fips:
+    name: Test and Build
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -160,7 +163,7 @@ jobs:
           echo "GOMODCACHE=$(go env GOMODCACHE)" >> "$GITHUB_ENV"
           echo "GOCACHE=$(go env GOCACHE)" >> "$GITHUB_ENV"
 
-      - uses: actions/cache@v3
+      - uses: actions/cache/restore@v3
         with:
           path: |
             ${{ env.GOMODCACHE }}/cache
@@ -172,25 +175,15 @@ jobs:
       - name: Fetch current branch
         run: ./ci/fetch_current_branch.sh
 
-      # As described in
-      # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-      - uses: actions/cache@v3
-        with:
-          path: |
-            /home/runner/go/pkg/mod
-            /home/runner/.cache/go-build
-            /Users/runner/go/pkg/mod
-            /Users/runner/Library/Caches/go-build
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
       - name: Add opentelemetry-collector-builder installation dir to PATH
         run: echo "$HOME/bin" >> $GITHUB_PATH
 
       - name: Install opentelemetry-collector-builder
         run: make install-builder
         working-directory: ./otelcolbuilder
+
+      - name: Run package tests
+        run: make gotest
 
       - name: Build
         run: make otelcol-sumo-${{matrix.arch_os}} FIPS_SUFFIX="-fips" CGO_ENABLED=1
