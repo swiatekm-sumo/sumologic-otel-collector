@@ -220,8 +220,8 @@ jobs:
     name: Build container
     runs-on: ubuntu-20.04
     needs:
-      - build
-      - build-fips
+      - test-and-build
+      - test-and-build-fips
     strategy:
       matrix:
         arch_os: [ 'linux_amd64', 'linux_arm64' ]
@@ -326,7 +326,7 @@ jobs:
     name: Package MSI
     runs-on: windows-2019
     needs:
-      - build
+      - test-and-build
     steps:
       - uses: actions/checkout@v3
 
