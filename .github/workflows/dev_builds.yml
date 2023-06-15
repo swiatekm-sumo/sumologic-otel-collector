@@ -25,19 +25,26 @@ jobs:
         arch_os: [ 'linux_amd64' ]
     steps:
       - uses: actions/checkout@v3
+
       - name: Setup go
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
+          cache: false
+
+      - name: Get GOCACHE and GOMODCACHE
+        run: |
+          echo "GOMODCACHE=$(go env GOMODCACHE)" >> "$GITHUB_ENV"
+          echo "GOCACHE=$(go env GOCACHE)" >> "$GITHUB_ENV"
 
       - uses: actions/cache@v3
         with:
           path: |
-            /home/runner/.cache/golangci-lint
-          key: ${{matrix.arch_os}}-golangcilint-${{ hashFiles('**/go.sum') }}
+            ${{ env.GOMODCACHE }}/cache
+            ${{ env.GOCACHE }}
+          key: golangcilint-${{matrix.arch_os}}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{matrix.arch_os}}-golangcilint-
+            golangcilint-${{matrix.arch_os}}-
 
       - name: Install golangci-lint
         run: make install-golangci-lint
@@ -76,7 +83,21 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
+          cache: false
+
+      - name: Get GOCACHE and GOMODCACHE
+        run: |
+          echo "GOMODCACHE=$(go env GOMODCACHE)" >> "$GITHUB_ENV"
+          echo "GOCACHE=$(go env GOCACHE)" >> "$GITHUB_ENV"
+
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.GOMODCACHE }}/cache
+            ${{ env.GOCACHE }}
+          key: go-${{matrix.arch_os}}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            go-${{matrix.arch_os}}-
 
       - name: Set default BUILDER_BIN_PATH
         run: echo "BUILDER_BIN_PATH=${HOME}/bin" >> $GITHUB_ENV
@@ -137,22 +158,24 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
+          cache: false
+
+      - name: Get GOCACHE and GOMODCACHE
+        run: |
+          echo "GOMODCACHE=$(go env GOMODCACHE)" >> "$GITHUB_ENV"
+          echo "GOCACHE=$(go env GOCACHE)" >> "$GITHUB_ENV"
+
+      - uses: actions/cache/restore@v3
+        with:
+          path: |
+            ${{ env.GOMODCACHE }}/cache
+            ${{ env.GOCACHE }}
+          key: go-${{matrix.arch_os}}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            go-${{matrix.arch_os}}-
 
       - name: Fetch current branch
         run: ./ci/fetch_current_branch.sh
-
-      # As described in
-      # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-      - uses: actions/cache@v3
-        with:
-          path: |
-            /home/runner/go/pkg/mod
-            /home/runner/.cache/go-build
-            /Users/runner/go/pkg/mod
-            /Users/runner/Library/Caches/go-build
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
 
       - name: Add opentelemetry-collector-builder installation dir to PATH
         run: echo "$HOME/bin" >> $GITHUB_PATH

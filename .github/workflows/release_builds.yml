@@ -46,7 +46,21 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
+          cache: false
+
+      - name: Get GOCACHE and GOMODCACHE
+        run: |
+          echo "GOMODCACHE=$(go env GOMODCACHE)" >> "$GITHUB_ENV"
+          echo "GOCACHE=$(go env GOCACHE)" >> "$GITHUB_ENV"
+
+      - uses: actions/cache/restore@v3
+        with:
+          path: |
+            ${{ env.GOMODCACHE }}/cache
+            ${{ env.GOCACHE }}
+          key: go-${{matrix.arch_os}}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            go-${{matrix.arch_os}}-
 
       - name: Set default BUILDER_BIN_PATH
         run: echo "BUILDER_BIN_PATH=${HOME}/bin" >> $GITHUB_ENV
@@ -129,17 +143,21 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
+          cache: false
 
-      # As described in
-      # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-      - uses: actions/cache@v3
+      - name: Get GOCACHE and GOMODCACHE
+        run: |
+          echo "GOMODCACHE=$(go env GOMODCACHE)" >> "$GITHUB_ENV"
+          echo "GOCACHE=$(go env GOCACHE)" >> "$GITHUB_ENV"
+
+      - uses: actions/cache/restore@v3
         with:
           path: |
-            /Users/runner/go/pkg/mod
-            /Users/runner/Library/Caches/go-build
-          key: ${{matrix.arch_os}}-go-${{ hashFiles('**/go.sum') }}
+            ${{ env.GOMODCACHE }}/cache
+            ${{ env.GOCACHE }}
+          key: go-${{matrix.arch_os}}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{matrix.arch_os}}-go-
+            go-${{matrix.arch_os}}-
 
       - name: Extract tag
         id: extract_tag
@@ -235,7 +253,21 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
+          cache: false
+
+      - name: Get GOCACHE and GOMODCACHE
+        run: |
+          echo "GOMODCACHE=$(go env GOMODCACHE)" >> "$GITHUB_ENV"
+          echo "GOCACHE=$(go env GOCACHE)" >> "$GITHUB_ENV"
+
+      - uses: actions/cache/restore@v3
+        with:
+          path: |
+            ${{ env.GOMODCACHE }}/cache
+            ${{ env.GOCACHE }}
+          key: go-${{matrix.arch_os}}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            go-${{matrix.arch_os}}-
 
       - name: Fetch current branch
         run: ./ci/fetch_current_branch.sh
