@@ -166,7 +166,7 @@ jobs:
           path: |
             ${{ env.GOMODCACHE }}/cache
             ${{ env.GOCACHE }}
-          key: go-${{matrix.arch_os}}-${{ hashFiles('**/go.sum') }}
+          key: go-${{matrix.arch_os}}-${{ hashFiles('pkg/**/go.sum', 'otelcolbuilder/.otelcol-builder.yaml') }}
           restore-keys: |
             go-${{matrix.arch_os}}-
 
@@ -266,7 +266,7 @@ jobs:
           path: |
             ${{ env.GOMODCACHE }}/cache
             ${{ env.GOCACHE }}
-          key: go-${{matrix.arch_os}}-${{ hashFiles('**/go.sum') }}
+          key: go-${{matrix.arch_os}}-${{ hashFiles('pkg/**/go.sum', 'otelcolbuilder/.otelcol-builder.yaml') }}
           restore-keys: |
             go-${{matrix.arch_os}}-
 
@@ -343,7 +343,7 @@ jobs:
           path: |
             ${{ env.GOMODCACHE }}/cache
             ${{ env.GOCACHE }}
-          key: golangcilint-${{matrix.arch_os}}-${{ hashFiles('**/go.sum') }}
+          key: golangcilint-${{matrix.arch_os}}-${{ hashFiles('pkg/**/go.sum', 'otelcolbuilder/.otelcol-builder.yaml') }}
           restore-keys: |
             golangcilint-${{matrix.arch_os}}-
 
