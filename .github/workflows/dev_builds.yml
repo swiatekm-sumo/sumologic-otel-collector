@@ -72,35 +72,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Check if test related files changed
-        id: changed-files
-        uses: tj-actions/changed-files@v35
-        with:
-          files: |
-            **/go.mod
-            **/go.sum
-            **/*.go
-            **/*.yaml
-            **/*.yml
-            **/Makefile
-            **/Makefile.common
-            scripts/install.sh
-
       - name: Setup go
-        if: steps.changed-files.outputs.any_changed == 'true'
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: false
 
       - name: Get GOCACHE and GOMODCACHE
-        if: steps.changed-files.outputs.any_changed == 'true'
         run: |
           echo "GOMODCACHE=$(go env GOMODCACHE)" >> "$GITHUB_ENV"
           echo "GOCACHE=$(go env GOCACHE)" >> "$GITHUB_ENV"
 
-      - uses: actions/cache@v3
-        if: steps.changed-files.outputs.any_changed == 'true'
+      - uses: actions/cache/restore@v3
         with:
           path: |
             ${{ env.GOMODCACHE }}/cache
@@ -110,20 +93,25 @@ jobs:
             go-${{matrix.arch_os}}-
 
       - name: Set default BUILDER_BIN_PATH
-        if: steps.changed-files.outputs.any_changed == 'true'
         run: echo "BUILDER_BIN_PATH=${HOME}/bin" >> $GITHUB_ENV
 
       - name: Override BUILDER_BIN_PATH if set in matrix
-        if: matrix.builder_bin_path != '' && steps.changed-files.outputs.any_changed == 'true'
+        if: matrix.builder_bin_path != ''
         run: echo "BUILDER_BIN_PATH=${{matrix.builder_bin_path}}" >> $GITHUB_ENV
 
       - name: Add opentelemetry-collector-builder installation dir to PATH
-        if: steps.changed-files.outputs.any_changed == 'true'
         run: echo "$BUILDER_BIN_PATH" >> $GITHUB_PATH
 
       - name: Run package tests
-        if: steps.changed-files.outputs.any_changed == 'true'
         run: make gotest
+
+      # we always want to save this so it stays fresh
+      - uses: actions/cache/save@v3
+        with:
+          path: |
+            ${{ env.GOMODCACHE }}/cache
+            ${{ env.GOCACHE }}
+          key: go-${{matrix.arch_os}}-${{ hashFiles('**/go.sum') }}
 
   build:
     name: Build
@@ -161,7 +149,7 @@ jobs:
           echo "GOMODCACHE=$(go env GOMODCACHE)" >> "$GITHUB_ENV"
           echo "GOCACHE=$(go env GOCACHE)" >> "$GITHUB_ENV"
 
-      - uses: actions/cache@v3
+      - uses: actions/cache/restore@v3
         with:
           path: |
             ${{ env.GOMODCACHE }}/cache
@@ -214,6 +202,14 @@ jobs:
           name: otelcol-sumo-${{matrix.arch_os}}_modules.txt
           path: ./otelcolbuilder/cmd/otelcol-sumo-${{matrix.arch_os}}_modules.txt
           if-no-files-found: error
+
+      # we always want to save this in case it only had the test dependencies and build cache
+      - uses: actions/cache/save@v3
+        with:
+          path: |
+            ${{ env.GOMODCACHE }}/cache
+            ${{ env.GOCACHE }}
+          key: go-${{matrix.arch_os}}-${{ hashFiles('**/go.sum') }}
 
   # pipeline to build FIPS compliance binary on Go+BoringCrypto
   build-fips:
