@@ -10,7 +10,7 @@ defaults:
     shell: bash
 
 env:
-  GO_VERSION: "1.20"
+  GO_VERSION: "1.20.5"
 
 jobs:
 
@@ -166,9 +166,9 @@ jobs:
           path: |
             ${{ env.GOMODCACHE }}/cache
             ${{ env.GOCACHE }}
-          key: go-test-${{matrix.arch_os}}-${{ hashFiles('pkg/**/go.sum', 'otelcolbuilder/.otelcol-builder.yaml') }}
+          key: go-test-${{matrix.arch_os}}-${{ env.GO_VERSION }}-${{ hashFiles('pkg/**/go.sum', 'otelcolbuilder/.otelcol-builder.yaml') }}
           restore-keys: |
-            go-test-${{matrix.arch_os}}-
+            go-test-${{matrix.arch_os}}-${{ env.GO_VERSION }}-
 
       - name: Set default BUILDER_BIN_PATH
         if: steps.changed-files.outputs.any_changed == 'true'
@@ -266,9 +266,9 @@ jobs:
           path: |
             ${{ env.GOMODCACHE }}/cache
             ${{ env.GOCACHE }}
-          key: go-test-${{matrix.arch_os}}-${{ hashFiles('pkg/**/go.sum', 'otelcolbuilder/.otelcol-builder.yaml') }}
+          key: go-test-${{matrix.arch_os}}-${{ env.GO_VERSION }}-${{ hashFiles('pkg/**/go.sum', 'otelcolbuilder/.otelcol-builder.yaml') }}
           restore-keys: |
-            go-test-${{matrix.arch_os}}-
+            go-test-${{matrix.arch_os}}-${{ env.GO_VERSION }}-
 
       - name: Add opentelemetry-collector-builder installation dir to PATH
         if: steps.changed-files.outputs.any_changed == 'true'
@@ -418,7 +418,7 @@ jobs:
             ${{ env.GOCACHE }}
           key: go-${{matrix.arch_os}}-${{ hashFiles('pkg/**/go.sum', 'otelcolbuilder/.otelcol-builder.yaml') }}
           restore-keys: |
-            go-build-${{matrix.arch_os}}-
+            go-build-${{matrix.arch_os}}-${{ env.GO_VERSION }}-
 
       - name: Set default BUILDER_BIN_PATH
         run: echo "BUILDER_BIN_PATH=${HOME}/bin" >> $GITHUB_ENV
