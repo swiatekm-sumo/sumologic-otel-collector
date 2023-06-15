@@ -219,6 +219,7 @@ jobs:
   build-fips:
     name: Build
     runs-on: ubuntu-20.04
+    needs: [test]  # this is just so we can have everything in one build cache
     strategy:
       matrix:
         arch_os: [ 'linux_amd64']
