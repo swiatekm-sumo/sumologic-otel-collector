@@ -39,9 +39,7 @@ jobs:
 
       - uses: actions/cache@v3
         with:
-          path: |
-            ${{ env.GOMODCACHE }}/cache
-            ${{ env.GOCACHE }}
+          path: ${{ env.GOCACHE }}/golangci-lint
           key: golangcilint-${{matrix.arch_os}}-${{ hashFiles('pkg/**/go.sum', 'otelcolbuilder/.otelcol-builder.yaml') }}
           restore-keys: |
             golangcilint-${{matrix.arch_os}}-
