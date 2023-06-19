@@ -18,10 +18,6 @@ on:
         description: Save the module and build caches.
         default: false
         type: boolean
-      builder-bin-path:
-        description: Path to the otelcol builder binary directory.
-        type: string
-        required: false
 
 jobs:
   test:
@@ -71,10 +67,6 @@ jobs:
         if: ${{ ! inputs.only-if-changed || steps.changed-files.outputs.any_changed == 'true' }}
         run: echo "BUILDER_BIN_PATH=${HOME}/bin" >> $GITHUB_ENV
 
-      - name: Override BUILDER_BIN_PATH
-        if: ${{ inputs.builder-bin-path != '' && (! inputs.only-if-changed || steps.changed-files.outputs.any_changed == 'true') }}
-        run: echo "BUILDER_BIN_PATH=${{inputs.builder-bin-path}}" >> $GITHUB_ENV
-
       - name: Add opentelemetry-collector-builder installation dir to PATH
         if: ${{ ! inputs.only-if-changed || steps.changed-files.outputs.any_changed == 'true' }}
         run: echo "$BUILDER_BIN_PATH" >> $GITHUB_PATH
@@ -84,7 +76,7 @@ jobs:
         run: make gotest
 
       - uses: actions/cache/save@v3
-        if: ${{ inputs.save_cache && (! inputs.only-if-changed || steps.changed-files.outputs.any_changed == 'true') }}
+        if: ${{ inputs.save-cache && (! inputs.only-if-changed || steps.changed-files.outputs.any_changed == 'true') }}
         with:
           path: |
             ${{ env.GOMODCACHE }}/cache

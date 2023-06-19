@@ -56,6 +56,7 @@ jobs:
         run: make golint
 
   test:
+    name: Test
     uses: ./.github/workflows/workflow-test.yml
     strategy:
       matrix:
@@ -66,16 +67,14 @@ jobs:
             runs-on: macos-latest
           - arch_os: windows_amd64
             runs-on: windows-2022
-            builder-bin-path: '${RUNNER_TEMP}\bin'
     with:
       arch_os: ${{ matrix.arch_os }}
-      runs-on: ${{ matrix.runs_on }}
+      runs-on: ${{ matrix.runs-on }}
       save-cache: true
 
   build:
     name: Build
     runs-on: ${{ matrix.runs_on }}
-    needs: [test]  # this is just so we can have everything in one build cache
     strategy:
       matrix:
         include:
@@ -174,7 +173,6 @@ jobs:
   build-fips:
     name: Build
     runs-on: ubuntu-20.04
-    needs: [test]  # this is just so we can have everything in one build cache
     strategy:
       matrix:
         arch_os: [ 'linux_amd64']

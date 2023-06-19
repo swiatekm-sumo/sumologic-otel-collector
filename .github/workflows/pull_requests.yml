@@ -117,6 +117,7 @@ jobs:
         run: make shellcheck
 
   test:
+    name: Test
     uses: ./.github/workflows/workflow-test.yml
     strategy:
       matrix:
@@ -127,10 +128,9 @@ jobs:
             runs-on: macos-latest
           - arch_os: windows_amd64
             runs-on: windows-2022
-            builder-bin-path: '${RUNNER_TEMP}\bin'
     with:
       arch_os: ${{ matrix.arch_os }}
-      runs-on: ${{ matrix.runs_on }}
+      runs-on: ${{ matrix.runs-on }}
       only-if-changed: true
 
   test-install-script:
