@@ -340,7 +340,9 @@ jobs:
       - uses: actions/cache/restore@v3
         if: steps.changed-files.outputs.any_changed == 'true'
         with:
-          path: ${{ env.GOCACHE }}/golangci-lint
+          path: |
+            ${{ env.GOCACHE }}/golangci-lint
+            ${{ env.GOMODCACHE }}/cache
           key: golangcilint-${{matrix.arch_os}}-${{ hashFiles('pkg/**/go.sum', 'otelcolbuilder/.otelcol-builder.yaml') }}
           restore-keys: |
             golangcilint-${{matrix.arch_os}}-
