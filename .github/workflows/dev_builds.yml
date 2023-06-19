@@ -69,6 +69,9 @@ jobs:
             runs_on: windows-2022
             builder_bin_path: '${RUNNER_TEMP}\bin'
             builder_bin_ext: .exe
+          - arch_os: linux_amd64
+            runs_on: ubuntu-20.04
+            boringcrypto: true
     steps:
       - uses: actions/checkout@v3
 
@@ -96,14 +99,17 @@ jobs:
         run: echo "BUILDER_BIN_PATH=${HOME}/bin" >> $GITHUB_ENV
 
       - name: Override BUILDER_BIN_PATH if set in matrix
-        if: matrix.builder_bin_path != ''
         run: echo "BUILDER_BIN_PATH=${{matrix.builder_bin_path}}" >> $GITHUB_ENV
 
       - name: Add opentelemetry-collector-builder installation dir to PATH
         run: echo "$BUILDER_BIN_PATH" >> $GITHUB_PATH
 
+      - name: Set test arguments
+        if: matrix.boringcrypto
+        run: echo "TEST_ARGS='CGO_ENABLED=1 GOEXPERIMENT=boringcrypto'" >> $GITHUB_ENV
+
       - name: Run package tests
-        run: make gotest
+        run: make gotest ${TEST_ARGS}
 
       # we always want to save this so it stays fresh
       - uses: actions/cache/save@v3
