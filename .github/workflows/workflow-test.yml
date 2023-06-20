@@ -19,6 +19,10 @@ on:
         default: false
         type: boolean
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   test:
     name: Test
