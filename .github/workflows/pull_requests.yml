@@ -1,4 +1,4 @@
-name: PRs checks
+name: PRs checks random change
 
 on:
   pull_request:
