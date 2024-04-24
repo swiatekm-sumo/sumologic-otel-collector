@@ -318,13 +318,6 @@ jobs:
 #    steps:
 #      - uses: actions/checkout@v4
 #
-#      - name: Extract tag
-#        id: extract_tag
-#        run: echo "tag=$(git rev-parse HEAD)" > $GITHUB_OUTPUT
-#
-#      - name: Print tag
-#        run: echo "Running dev build for ${{ needs.get-version.outputs.version }}"
-#
 #      - name: Set up QEMU
 #        uses: docker/setup-qemu-action@v3.0.0
 #
