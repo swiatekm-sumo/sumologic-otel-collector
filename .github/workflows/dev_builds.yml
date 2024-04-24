@@ -473,14 +473,14 @@ jobs:
           path: ./install-script/install.ps1
           if-no-files-found: error
 
-  trigger-packaging:
-    name: Trigger Packaging
-    needs:
-      - lint
-      - package-msi
-      - push-docker-manifest
-    uses: ./.github/workflows/workflow-trigger-packaging.yml
-    secrets: inherit
-    with:
-      workflow_id: ${{ github.run_id }}
-      create_release: false
+#  trigger-packaging:
+#    name: Trigger Packaging
+#    needs:
+#      - lint
+#      - package-msi
+#      - push-docker-manifest
+#    uses: ./.github/workflows/workflow-trigger-packaging.yml
+#    secrets: inherit
+#    with:
+#      workflow_id: ${{ github.run_id }}
+#      create_release: false
