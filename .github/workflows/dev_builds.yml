@@ -166,17 +166,17 @@ jobs:
       - name: Show Buildx platforms
         run: echo ${{ steps.buildx.outputs.platforms }}
 
-      - name: Login to Open Source ECR
-        run: make login
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
-
-      - name: Login to Docker Hub
-        run: |
-          docker login \
-            --username ${{ secrets.DOCKERHUB_LOGIN_DEV }} \
-            --password ${{ secrets.DOCKERHUB_PASSWORD_DEV }}
+#      - name: Login to Open Source ECR
+#        run: make login
+#        env:
+#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+#
+#      - name: Login to Docker Hub
+#        run: |
+#          docker login \
+#            --username ${{ secrets.DOCKERHUB_LOGIN_DEV }} \
+#            --password ${{ secrets.DOCKERHUB_PASSWORD_DEV }}
 
       - name: Download FIPS binary action artifact from build phase
         uses: actions/download-artifact@v4
@@ -272,22 +272,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Login to Open Source ECR
-        run: |
-          USERNAME=$(powershell.exe "echo \$Env:UserName")
-          # remove wincred entry and fix json format by replacing }, with }
-          cat "C:\\Users\\${USERNAME}\\.docker\\config.json" | grep -v "wincred" | sed 's/},$/}/' > "C:\\Users\\${USERNAME}\\.docker\\config.json.tmp"
-          mv "C:\\Users\\${USERNAME}\\.docker\\config.json.tmp" "C:\\Users\\${USERNAME}\\.docker\\config.json"
-          make login
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
-
-      - name: Login to Docker Hub
-        run: |
-          docker login \
-            --username ${{ secrets.DOCKERHUB_LOGIN_DEV }} \
-            --password ${{ secrets.DOCKERHUB_PASSWORD_DEV }}
+#      - name: Login to Open Source ECR
+#        run: |
+#          USERNAME=$(powershell.exe "echo \$Env:UserName")
+#          # remove wincred entry and fix json format by replacing }, with }
+#          cat "C:\\Users\\${USERNAME}\\.docker\\config.json" | grep -v "wincred" | sed 's/},$/}/' > "C:\\Users\\${USERNAME}\\.docker\\config.json.tmp"
+#          mv "C:\\Users\\${USERNAME}\\.docker\\config.json.tmp" "C:\\Users\\${USERNAME}\\.docker\\config.json"
+#          make login
+#        env:
+#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+#
+#      - name: Login to Docker Hub
+#        run: |
+#          docker login \
+#            --username ${{ secrets.DOCKERHUB_LOGIN_DEV }} \
+#            --password ${{ secrets.DOCKERHUB_PASSWORD_DEV }}
 
       - name: Download binary action artifact from build phase
         uses: actions/download-artifact@v4
@@ -310,95 +310,95 @@ jobs:
             REPO_URL=sumologic/sumologic-otel-collector-dev \
             PLATFORM=${{ matrix.arch_os }}_${{ matrix.base_image_tag }}
 
-  push-docker-manifest:
-    name: Push joint container manifest
-    runs-on: ubuntu-20.04
-    needs:
-      - build-container-images
-      - build-windows-container-images
-      - get-version
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.0.0
-
-      - name: Set up Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v3.3.0
-
-      - name: Show Buildx platforms
-        run: echo ${{ steps.buildx.outputs.platforms }}
-
-      - name: Login to Open Source ECR
-        run: make login
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
-
-      - name: Login to Docker Hub
-        run: |
-          docker login \
-            --username ${{ secrets.DOCKERHUB_LOGIN_DEV }} \
-            --password ${{ secrets.DOCKERHUB_PASSWORD_DEV }}
-
-      - name: Push joint FIPS container manifest for all platforms to Open Source ECR
-        run: |
-          make push-container-manifest-dev \
-            BUILD_TAG=${{ needs.get-version.outputs.version }} \
-            PLATFORMS="linux/amd64" \
-            BUILD_TYPE_SUFFIX="-fips"
-
-      - name: Push joint FIPS container manifest for all platforms to DockerHub
-        run: |
-          make push-container-manifest-dev \
-            BUILD_TAG=${{ needs.get-version.outputs.version }} \
-            PLATFORMS="linux/amd64" \
-            REPO_URL=sumologic/sumologic-otel-collector-dev \
-            BUILD_TYPE_SUFFIX="-fips"
-
-      - name: Push joint UBI-based FIPS container manifest for all platforms to Open Source ECR
-        run: |
-          make push-container-manifest-dev \
-            BUILD_TAG=${{ needs.get-version.outputs.version }} \
-            PLATFORMS="linux/amd64" \
-            BUILD_TYPE_SUFFIX="-ubi-fips"
-
-      - name: Push joint UBI-based FIPS container manifest for all platforms to DockerHub
-        run: |
-          make push-container-manifest-dev \
-            BUILD_TAG=${{ needs.get-version.outputs.version }} \
-            PLATFORMS="linux/amd64" \
-            REPO_URL=sumologic/sumologic-otel-collector-dev \
-            BUILD_TYPE_SUFFIX="-ubi-fips"
-
-      - name: Push joint container manifest for all platforms to Open Source ECR
-        run: |
-          make push-container-manifest-dev \
-            BUILD_TAG=${{ needs.get-version.outputs.version }} \
-            PLATFORMS="linux/amd64 linux/arm64 windows/amd64/ltsc2022 windows/amd64/ltsc2019"
-
-      - name: Push joint container manifest for all platforms to DockerHub
-        run: |
-          make push-container-manifest-dev \
-            BUILD_TAG=${{ needs.get-version.outputs.version }} \
-            PLATFORMS="linux/amd64 linux/arm64 windows/amd64/ltsc2022 windows/amd64/ltsc2019" \
-            REPO_URL=sumologic/sumologic-otel-collector-dev
-
-      - name: Push joint UBI-based container manifest for all platforms to Open Source ECR
-        run: |
-          make push-container-manifest-dev \
-            BUILD_TAG=${{ needs.get-version.outputs.version }} \
-            PLATFORMS="linux/amd64" \
-            BUILD_TYPE_SUFFIX="-ubi"
-
-      - name: Push joint UBI-based container manifest for all platforms to DockerHub
-        run: |
-          make push-container-manifest-dev \
-            BUILD_TAG=${{ needs.get-version.outputs.version }} \
-            PLATFORMS="linux/amd64" \
-            REPO_URL=sumologic/sumologic-otel-collector-dev \
-            BUILD_TYPE_SUFFIX="-ubi"
+#  push-docker-manifest:
+#    name: Push joint container manifest
+#    runs-on: ubuntu-20.04
+#    needs:
+#      - build-container-images
+#      - build-windows-container-images
+#      - get-version
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - name: Set up QEMU
+#        uses: docker/setup-qemu-action@v3.0.0
+#
+#      - name: Set up Buildx
+#        id: buildx
+#        uses: docker/setup-buildx-action@v3.3.0
+#
+#      - name: Show Buildx platforms
+#        run: echo ${{ steps.buildx.outputs.platforms }}
+#
+#      - name: Login to Open Source ECR
+#        run: make login
+#        env:
+#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+#
+#      - name: Login to Docker Hub
+#        run: |
+#          docker login \
+#            --username ${{ secrets.DOCKERHUB_LOGIN_DEV }} \
+#            --password ${{ secrets.DOCKERHUB_PASSWORD_DEV }}
+#
+#      - name: Push joint FIPS container manifest for all platforms to Open Source ECR
+#        run: |
+#          make push-container-manifest-dev \
+#            BUILD_TAG=${{ needs.get-version.outputs.version }} \
+#            PLATFORMS="linux/amd64" \
+#            BUILD_TYPE_SUFFIX="-fips"
+#
+#      - name: Push joint FIPS container manifest for all platforms to DockerHub
+#        run: |
+#          make push-container-manifest-dev \
+#            BUILD_TAG=${{ needs.get-version.outputs.version }} \
+#            PLATFORMS="linux/amd64" \
+#            REPO_URL=sumologic/sumologic-otel-collector-dev \
+#            BUILD_TYPE_SUFFIX="-fips"
+#
+#      - name: Push joint UBI-based FIPS container manifest for all platforms to Open Source ECR
+#        run: |
+#          make push-container-manifest-dev \
+#            BUILD_TAG=${{ needs.get-version.outputs.version }} \
+#            PLATFORMS="linux/amd64" \
+#            BUILD_TYPE_SUFFIX="-ubi-fips"
+#
+#      - name: Push joint UBI-based FIPS container manifest for all platforms to DockerHub
+#        run: |
+#          make push-container-manifest-dev \
+#            BUILD_TAG=${{ needs.get-version.outputs.version }} \
+#            PLATFORMS="linux/amd64" \
+#            REPO_URL=sumologic/sumologic-otel-collector-dev \
+#            BUILD_TYPE_SUFFIX="-ubi-fips"
+#
+#      - name: Push joint container manifest for all platforms to Open Source ECR
+#        run: |
+#          make push-container-manifest-dev \
+#            BUILD_TAG=${{ needs.get-version.outputs.version }} \
+#            PLATFORMS="linux/amd64 linux/arm64 windows/amd64/ltsc2022 windows/amd64/ltsc2019"
+#
+#      - name: Push joint container manifest for all platforms to DockerHub
+#        run: |
+#          make push-container-manifest-dev \
+#            BUILD_TAG=${{ needs.get-version.outputs.version }} \
+#            PLATFORMS="linux/amd64 linux/arm64 windows/amd64/ltsc2022 windows/amd64/ltsc2019" \
+#            REPO_URL=sumologic/sumologic-otel-collector-dev
+#
+#      - name: Push joint UBI-based container manifest for all platforms to Open Source ECR
+#        run: |
+#          make push-container-manifest-dev \
+#            BUILD_TAG=${{ needs.get-version.outputs.version }} \
+#            PLATFORMS="linux/amd64" \
+#            BUILD_TYPE_SUFFIX="-ubi"
+#
+#      - name: Push joint UBI-based container manifest for all platforms to DockerHub
+#        run: |
+#          make push-container-manifest-dev \
+#            BUILD_TAG=${{ needs.get-version.outputs.version }} \
+#            PLATFORMS="linux/amd64" \
+#            REPO_URL=sumologic/sumologic-otel-collector-dev \
+#            BUILD_TYPE_SUFFIX="-ubi"
 
   package-msi:
     name: Package MSI
