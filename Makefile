@@ -315,15 +315,15 @@ build-container-windows:
 		BASE_IMAGE_TAG=ltsc2019
 
 .PHONY: build-push-container-windows
-build-push-container-windows: PUSH = --push
+build-push-container-windows:
 build-push-container-windows: build-container-windows
 
 .PHONY: build-push-container-multiplatform
-build-push-container-multiplatform: PUSH = --push
+build-push-container-multiplatform:
 build-push-container-multiplatform: _build-container-multiplatform
 
 .PHONY: build-push-container-ubi
-build-push-container-ubi: PUSH = --push
+build-push-container-ubi:
 build-push-container-ubi: DOCKERFILE = Dockerfile_ubi
 build-push-container-ubi: _build-container-multiplatform
 
